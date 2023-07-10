@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "my-project"
+version = "0.1.0"
+description = "A simple project that uses Wandb."
+authors = ["VirginieBfd"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+wandb = "^0.15.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+black = "^21.12b0"
+flake8 = "^4.0.1"
+

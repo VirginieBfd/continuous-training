@@ -5,7 +5,7 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy the Python script to the working directory
-COPY hello_world.py .
+COPY . .
 
 # Set the entrypoint command to run the Python script
-CMD ["python", "hello_world.py"]
+CMD ["python", "github_action_hello_world/hello_world.py"]
