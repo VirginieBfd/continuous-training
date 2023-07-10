@@ -12,9 +12,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        
-      - name: Build Docker image
+
+      - name: docker_build_image
         run: docker build -t hello_world .
 
-      - name: Run Docker container
+      - name: docker_run_container
         run: docker run hello_world
+
+      - name: display_output
+        run: echo "${{ steps.docker_run_container.outputs.output }}"
