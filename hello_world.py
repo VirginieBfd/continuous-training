@@ -1,3 +1,9 @@
 import wandb
 
-print("Hello world, today is a beautiful day!")
+
+def main():
+  output = "Hello world! Today is a beautiful day, isn't it?"
+  return output
+
+if __name__ == "__main__":
+  print(main())
