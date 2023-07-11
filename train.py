@@ -55,7 +55,7 @@ train_ds = MNIST(
 train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE)
 
 # Initialize a trainer
-wandb_logger = WandbLogger(project="mlops-wandb", log_model="all")
+wandb_logger = WandbLogger(project="mlops-wandb", log_model=True)
 # log model only if `val_accuracy` increases
 checkpoint_callback = ModelCheckpoint(monitor="train_loss", mode="min")
 trainer = L.Trainer(
