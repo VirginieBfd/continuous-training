@@ -3,6 +3,7 @@ import os
 import lightning as L
 import torch
 import torchmetrics
+from lightning.pytorch.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -51,23 +52,20 @@ model = MNISTModel()
 train_ds = MNIST(
     PATH_DATASETS, train=True, download=True, transform=transforms.ToTensor()
 )
-val_ds = MNIST(
-    PATH_DATASETS, train=False, download=True, transform=transforms.ToTensor()
-)
 train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE)
-val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 # Initialize a trainer
-wandb_logger = WandbLogger(project="mlops-wandb")
+wandb_logger = WandbLogger(project="mlops-wandb", log_model="all")
+# log model only if `val_accuracy` increases
+checkpoint_callback = ModelCheckpoint(monitor="train_loss", mode="min")
 trainer = L.Trainer(
     accelerator="auto",
     devices=1,
     max_epochs=3,
     logger=wandb_logger,
+    callbacks=[checkpoint_callback],
 )
+
 
 # Train the model ⚡
 trainer.fit(model, train_loader)
-
-# Evaluate the model ⚡
-trainer.test(dataloaders=val_loader)
