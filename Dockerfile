@@ -1,6 +1,8 @@
 # Base image for ARM architecture (Apple M1)
 FROM mambaorg/micromamba:latest
 
+USER root
+
 # Set the working directory in the container
 WORKDIR /app
 
