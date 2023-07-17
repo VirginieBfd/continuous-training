@@ -3,23 +3,96 @@ import os
 import lightning as L
 import torch
 import torchmetrics
+import torchvision.transforms as transforms
+from lightning.pytorch.callbacks import ModelCheckpoint
+from PIL import Image
 from pytorch_lightning.loggers import WandbLogger
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
-from torchvision.datasets import MNIST
 
-PATH_DATASETS = os.environ.get("PATH_DATASETS", ".")
-BATCH_SIZE = 256 if torch.cuda.is_available() else 64
+from wandb_utils import handle_dataset_artifact
 
 
-class MNISTModel(L.LightningModule):
+class AerialCactusDataset(Dataset):
+    def __init__(self, root_dir, train=True, transform=None):
+        super(AerialCactusDataset, self).__init__()
+
+        self.root_dir = root_dir + "/data/train" if train else root_dir + "/data/test"
+        self.transform = transform
+
+        self.classes = os.listdir(self.root_dir)  # Get list of classes
+        self.files = []
+        for class_idx, class_name in enumerate(self.classes):
+            class_dir = os.path.join(self.root_dir, class_name)
+            class_files = [
+                (os.path.join(class_dir, f), class_idx)
+                for f in os.listdir(class_dir)
+                if os.path.isfile(os.path.join(class_dir, f))
+            ]
+            self.files.extend(class_files)
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        img_path, label = self.files[idx]
+        img = Image.open(img_path).convert("RGB")  # Convert to RGB
+
+        if self.transform:
+            img = self.transform(img)
+
+        return img, label
+
+
+class AerialCactusDataModule(L.LightningDataModule):
+    def __init__(self, data_dir: str = "data"):
+        super().__init__()
+        self.data_dir = data_dir
+        self.batch_size = 256 if torch.cuda.is_available() else 32
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+
+    def prepare_data(self):
+        # download
+        AerialCactusDataset(self.data_dir, train=True)
+        AerialCactusDataset(self.data_dir, train=False)
+
+    def setup(self, stage: str):
+        # Assign train/val datasets for use in dataloaders
+        if stage == "fit":
+            dataset_full = AerialCactusDataset(
+                self.data_dir, train=True, transform=self.transform
+            )
+            self.dataset_train, self.dataset_val = random_split(
+                dataset_full, [0.7, 0.3]
+            )
+
+        # Assign test dataset for use in dataloader(s)
+        if stage == "test":
+            self.dataset_test = AerialCactusDataset(
+                self.data_dir, train=False, transform=self.transform
+            )
+
+    def train_dataloader(self):
+        return DataLoader(self.dataset_train, batch_size=self.batch_size)
+
+    def val_dataloader(self):
+        return DataLoader(self.dataset_val, batch_size=self.batch_size)
+
+    def test_dataloader(self):
+        return DataLoader(self.dataset_test, batch_size=self.batch_size)
+
+
+class Model(L.LightningModule):
     def __init__(self):
         super().__init__()
-        self.l1 = torch.nn.Linear(28 * 28, 10)
-        self.accuracy = torchmetrics.classification.Accuracy(
-            task="multiclass", num_classes=10
-        )
+        self.l1 = torch.nn.Linear(3 * 32 * 32, 2)
+        self.accuracy = torchmetrics.classification.Accuracy(task="binary")
 
     def forward(self, x):
         return torch.relu(self.l1(x.view(x.size(0), -1)))
@@ -44,30 +117,42 @@ class MNISTModel(L.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=0.001)
 
 
-# Init our model
-model = MNISTModel()
+def main():
+    project_name = "mlops-wandb"
+    user_name = os.environ['WANDB_USER_NAME']
+    artifact_name = "cactus"
 
-# Init DataLoader from MNIST Dataset
-train_ds = MNIST(
-    PATH_DATASETS, train=True, download=True, transform=transforms.ToTensor()
-)
-val_ds = MNIST(
-    PATH_DATASETS, train=False, download=True, transform=transforms.ToTensor()
-)
-train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE)
-val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
+    # Initialize a trainer
+    wandb_logger = WandbLogger(project=project_name, offline=False, log_model=False)
 
-# Initialize a trainer
-wandb_logger = WandbLogger(project="mlops-wandb")
-trainer = L.Trainer(
-    accelerator="auto",
-    devices=1,
-    max_epochs=3,
-    logger=wandb_logger,
-)
+    # Init our model
+    model = Model()
 
-# Train the model ⚡
-trainer.fit(model, train_loader)
+    artifact_dir = handle_dataset_artifact(
+        wandb_logger,
+        artifact_ref=f"{user_name}/{project_name}/{artifact_name}:latest",
+        artifact_name=artifact_name,
+        local_path="/Users/virginie/repos/github-actions-hello-world/data.zip",
+    )
 
-# Evaluate the model ⚡
-trainer.test(dataloaders=val_loader)
+    dm = AerialCactusDataModule(data_dir=artifact_dir)
+
+    # log model only if `val_accuracy` increases
+    checkpoint_callback = ModelCheckpoint(monitor="train_loss", mode="min")
+    trainer = L.Trainer(
+        accelerator="auto",
+        devices=1,
+        max_epochs=3,
+        logger=wandb_logger,
+        callbacks=[checkpoint_callback],
+    )
+
+    # Train the model ⚡
+    trainer.fit(model, dm)
+
+    # Evaluate the model ⚡
+    trainer.test(model, dm)
+
+
+if __name__ == "__main__":
+    main()
