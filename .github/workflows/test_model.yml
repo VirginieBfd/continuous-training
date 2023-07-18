@@ -6,39 +6,26 @@
 #
 # How it works: The workflow uses the 'issue_comment' event with the 'created' action to
 #               detect when a new comment is added to a PR. It then checks the comment body
-#               for a trigger phrase (in this case, '/test-model'). If the trigger phrase
+#               for a trigger phrase (in this case, '/test'). If the trigger phrase
 #               is found, the workflow proceeds to run the defined testing steps for the model.
 #
 # Usage: To trigger the workflow, a user with write access to the repository can comment on
 #        the PR with the following trigger phrase:
-#        /test-model
+#        /test
 
 name: Trigger Model Testing On Comment
 
 on:
   issue_comment:
     types: [created]
+    body:
+      - /test
 
 jobs:
   model-testing:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check for Trigger Comment
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const triggerPhrase = '/test-model';
-            const commentBody = context.payload.comment.body;
-
-            if (commentBody.includes(triggerPhrase)) {
-              console.log('Triggering workflow...');
-              return 'success';
-            } else {
-              console.log('No trigger phrase found. Skipping workflow.');
-              return 'skipped';
-            }
       - name: Checkout code
         uses: actions/checkout@v2
 
