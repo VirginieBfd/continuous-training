@@ -123,7 +123,7 @@ def main():
     artifact_name = "cactus"
 
     # Initialize a trainer
-    wandb_logger = WandbLogger(project=project_name, offline=False, log_model=False)
+    wandb_logger = WandbLogger(project=project_name, offline=False, log_model=True, job_type='train')
 
     # Init our model
     model = Model()
@@ -149,10 +149,6 @@ def main():
 
     # Train the model ⚡
     trainer.fit(model, dm)
-
-    # Evaluate the model ⚡
-    trainer.test(model, dm)
-
 
 if __name__ == "__main__":
     main()
