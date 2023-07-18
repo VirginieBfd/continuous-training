@@ -142,7 +142,7 @@ def main():
     trainer = L.Trainer(
         accelerator="auto",
         devices=1,
-        max_epochs=2,
+        max_epochs=1,
         logger=wandb_logger,
         callbacks=[checkpoint_callback],
     )
