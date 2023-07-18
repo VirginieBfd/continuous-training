@@ -1,5 +1,3 @@
-import os
-
 import lightning as L
 from pytorch_lightning.loggers import WandbLogger
 
