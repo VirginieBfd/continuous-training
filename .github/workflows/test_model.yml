@@ -1,3 +1,18 @@
+# Workflow: Model Testing on Comment Trigger
+#
+# Description: This GitHub Actions workflow triggers the testing of a machine learning
+#              whenever a user deems it appropriate by adding a specific trigger phrase
+#              in a comment on a Pull Request (PR).
+#
+# How it works: The workflow uses the 'issue_comment' event with the 'created' action to
+#               detect when a new comment is added to a PR. It then checks the comment body
+#               for a trigger phrase (in this case, '/test-model'). If the trigger phrase
+#               is found, the workflow proceeds to run the defined testing steps for the model.
+#
+# Usage: To trigger the workflow, a user with write access to the repository can comment on
+#        the PR with the following trigger phrase:
+#        /test-model
+
 name: Trigger Model Testing On Comment
 
 on:
