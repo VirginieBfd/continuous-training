@@ -17,4 +17,4 @@ ENV WANDB_USER_NAME=wandb-username
 ENV WANDB_API_KEY=wandb_api_key
 
 # Set the entrypoint command to run the Python script
-CMD ["python", "train.py"]
+CMD ["python", "eval.py"]

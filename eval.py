@@ -1,5 +1,6 @@
+import os
+
 import lightning as L
-from lightning.pytorch.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
 from utils import AerialCactusDataModule, Model, handle_dataset_artifact
@@ -11,12 +12,13 @@ def main():
     artifact_name = "cactus"
 
     # Initialize a trainer
-    wandb_logger = WandbLogger(
-        project=project_name, offline=False, log_model=True, job_type="train"
-    )
+    wandb_logger = WandbLogger(project=project_name, job_type="eval")
 
-    # Init our model
-    model = Model()
+    # Get model from registry
+    artifact_dir = wandb_logger.download_artifact(
+        f"{user_name}/model-registry/{project_name}:latest", artifact_type="model"
+    )
+    model = Model.load_from_checkpoint(f"{artifact_dir}/model.ckpt")
 
     artifact_dir = handle_dataset_artifact(
         wandb_logger,
@@ -27,18 +29,13 @@ def main():
 
     dm = AerialCactusDataModule(data_dir=artifact_dir)
 
-    # log model only if `val_accuracy` increases
-    checkpoint_callback = ModelCheckpoint(monitor="train_loss", mode="min")
+    # Evaluate the model ⚡
     trainer = L.Trainer(
         accelerator="auto",
         devices=1,
-        max_epochs=2,
         logger=wandb_logger,
-        callbacks=[checkpoint_callback],
     )
-
-    # Train the model ⚡
-    trainer.fit(model, dm)
+    trainer.test(model, dm)
 
 
 if __name__ == "__main__":

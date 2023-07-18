@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Docker Build Image
-        run: docker build -t train .
+        run: docker build -t eval .
 
       - name: Docker Train & Test Model
-        run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} train
+        run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} eval
