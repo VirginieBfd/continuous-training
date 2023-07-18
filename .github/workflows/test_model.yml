@@ -16,10 +16,13 @@
 name: Trigger Model Testing On Comment
 
 on:
-  issue_comment:
-    types: [created]
-    body:
-      - /test
+  and:
+    - issue_comment:
+        types: [created]
+        body: /test
+    - pull_request:
+        branches:
+          - current
 
 jobs:
   model-testing:
