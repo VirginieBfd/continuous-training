@@ -26,6 +26,6 @@ jobs:
 
       # Comment results to PR
       - name: Comment test results on PR
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: test_results.md
+          filePath: ./../../test_results.md
