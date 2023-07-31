@@ -23,3 +23,15 @@ jobs:
 
       - name: Docker Evaluate Model
         run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} eval
+
+      # Convert results to markdown
+      - name: Convert results to markdown
+        run: |
+            mkdir results
+            python .github/workflows/json_to_md.py test_results.json results/test_results.md
+
+      # Comment results to PR
+      - name: Comment test results on PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: results/test_results.md
