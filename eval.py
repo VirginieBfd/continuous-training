@@ -3,7 +3,6 @@ import json
 import lightning as L
 from pytorch_lightning.loggers import WandbLogger
 
-from json_to_md import json_to_markdown
 from utils import AerialCactusDataModule, Model, handle_dataset_artifact
 
 
@@ -39,10 +38,8 @@ def main():
     test_results = trainer.test(model, dm)
 
     # convert to JSON and save
-    with open("test_results.json", "w") as f:
+    with open("results/test_results.json", "w") as f:
         json.dump(test_results, f)
-
-    json_to_markdown("test_results.json", "test_results.md")
 
 
 if __name__ == "__main__":
