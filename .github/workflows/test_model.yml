@@ -36,3 +36,5 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           filePath: volume/test_results.md
+          message: 'Model test results are in'
+          GITHUB_TOKEN: ${{ secrets.PAT }}  # replace PAT with your personal access token secret name
