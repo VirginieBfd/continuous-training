@@ -1,3 +1,5 @@
+import json
+
 import lightning as L
 from pytorch_lightning.loggers import WandbLogger
 
@@ -33,7 +35,11 @@ def main():
         devices=1,
         logger=wandb_logger,
     )
-    trainer.test(model, dm)
+    test_results = trainer.test(model, dm)
+
+    # convert to JSON and save
+    with open("test_results.json", "w") as f:
+        json.dump(test_results, f)
 
 
 if __name__ == "__main__":
