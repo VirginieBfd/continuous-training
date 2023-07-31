@@ -38,7 +38,7 @@ def main():
     test_results = trainer.test(model, dm)
 
     # convert to JSON and save
-    with open("results/test_results.json", "w") as f:
+    with open("/volume/test_results.json", "w") as f:
         json.dump(test_results, f)
 
 

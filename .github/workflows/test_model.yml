@@ -18,18 +18,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Create Volume
+        run: mkdir volume
+
       - name: Docker Build Image
         run: docker build -t eval .
 
       - name: Docker Evaluate Model
-        run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} eval
+        run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} -v $PWD/volume:/volume eval
 
       # Read results from local folder
       - name: Read results from local folder
-        run: python .github/workflows/json_to_md.py results/test_results.json results/test_results.md
+        run: python .github/workflows/json_to_md.py volume/test_results.json volume/test_results.md
 
       # Comment test results on PR
       - name: Comment test results on PR
         uses: thollander/actions-comment-pull-request@v2
         with:
-          filePath: results/test_results.md
+          filePath: volume/test_results.md
