@@ -23,3 +23,9 @@ jobs:
 
       - name: Docker Evaluate Model
         run: docker run -e WANDB_USER_NAME=${{ secrets.WANDB_USER_NAME }} -e WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} eval
+
+      # Comment results to PR
+      - name: Comment test results on PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: test_results.md
